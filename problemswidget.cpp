@@ -7,6 +7,11 @@ ProblemsWidget::ProblemsWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    i = 1;
+    flag = 0;
+    user_id = 0;
+    str = "OK\r\n";
+
     TCP();
 }
 
@@ -19,8 +24,6 @@ ProblemsWidget::~ProblemsWidget()
 
 void ProblemsWidget::TCP()
 {
-    i = 1;
-
     tcpServer = new QTcpServer(this);
     tcpSocket = new QTcpSocket(this);
 
@@ -36,13 +39,17 @@ void ProblemsWidget::TCP()
         connect(tcpSocket, &QTcpSocket::readyRead, this, [=](){
             QByteArray arr;
 
-//            QTime time;
-//            time.start();
             for(unsigned int j = 0 ; j < tcpSocket_vector.size() ; j++)
             {
                 tcpSocket = tcpSocket_vector[j];
                 arr = tcpSocket->readAll();
-                if(arr.length() != 0)
+                if(arr == "response" && flag)
+                {
+                    tcpSocket->write(str.toUtf8());
+                    flag = 0;
+                    user_id = j;
+                }
+                if(!flag && j == user_id && arr.length() != 0 && arr != "response")
                 {
                     QSqlQuery query;
                     query.prepare("select answer from problems where id=:id;");
@@ -66,7 +73,6 @@ void ProblemsWidget::TCP()
                     ui->RecvLine->append(QString::number(clientPort));
                 }
             }
-//            qDebug() << time.elapsed();
         });
     });
 }
@@ -133,4 +139,6 @@ void ProblemsWidget::on_send_clicked()
         tcpSocket->write(query.value(5).toString().append("\r\n").toUtf8());
         tcpSocket->write(query.value(6).toString().append("\r\n").toUtf8());
     }
+
+    flag = 1;
 }

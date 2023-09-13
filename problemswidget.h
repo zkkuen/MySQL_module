@@ -32,9 +32,12 @@ private slots:
     void on_send_clicked();
 
 private:
-    int i;      // page number
+    int i;                   // page number
+    unsigned int flag;       // flag
+    unsigned int user_id;    // user id
     std::vector<double> t;   // correct number
     std::vector<double> sum; // total number
+    QString str;
     QTcpServer *tcpServer;
     QTcpSocket *tcpSocket;
     std::vector<QTcpSocket*> tcpSocket_vector;
