@@ -7,7 +7,7 @@
 #include <QMessageBox>
 #include <QTcpServer>
 #include <QTcpSocket>
-#include <QNetworkProxyFactory>
+//#include <QTime>
 
 namespace Ui {
 class ProblemsWidget;
@@ -22,6 +22,7 @@ public:
 
     explicit ProblemsWidget(QWidget *parent = nullptr);
     ~ProblemsWidget();
+    void TCP();
 
 private slots:
     void on_next_clicked();
@@ -31,11 +32,12 @@ private slots:
     void on_send_clicked();
 
 private:
-    int i; // page number
-    double t; // correct number
-    double sum; // total number
+    int i;      // page number
+    std::vector<double> t;   // correct number
+    std::vector<double> sum; // total number
     QTcpServer *tcpServer;
     QTcpSocket *tcpSocket;
+    std::vector<QTcpSocket*> tcpSocket_vector;
 };
 
 #endif // PROBLEMSWIDGET_H

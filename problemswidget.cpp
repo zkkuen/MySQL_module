@@ -7,11 +7,19 @@ ProblemsWidget::ProblemsWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    i = 1;
-    t = 0;
-    sum = 0;
+    TCP();
+}
 
-    QNetworkProxyFactory::setUseSystemConfiguration(false);
+ProblemsWidget::~ProblemsWidget()
+{
+    delete tcpServer;
+    delete tcpSocket;
+    delete ui;
+}
+
+void ProblemsWidget::TCP()
+{
+    i = 1;
 
     tcpServer = new QTcpServer(this);
     tcpSocket = new QTcpSocket(this);
@@ -20,38 +28,47 @@ ProblemsWidget::ProblemsWidget(QWidget *parent) :
 
     connect(tcpServer, &QTcpServer::newConnection, this, [=](){
         tcpSocket = tcpServer->nextPendingConnection();
+        tcpSocket_vector.push_back(tcpSocket);
+        t.push_back(0);
+        sum.push_back(0);
         QMessageBox::information(nullptr, "information", "TCP connect success!", QMessageBox::Ok);
 
-        QString clientIp = tcpSocket->peerAddress().toString();
-//        quint16 clientPort = tcpSocket->peerPort();
-
         connect(tcpSocket, &QTcpSocket::readyRead, this, [=](){
-            QByteArray arr = tcpSocket->readAll();
+            QByteArray arr;
 
-            QSqlQuery query;
-            query.prepare("select answer from problems where id=:id;");
-            query.bindValue(":id", i);
-
-            if(query.exec() && query.next())
+//            QTime time;
+//            time.start();
+            for(unsigned int j = 0 ; j < tcpSocket_vector.size() ; j++)
             {
-                sum++;
+                tcpSocket = tcpSocket_vector[j];
+                arr = tcpSocket->readAll();
+                if(arr.length() != 0)
+                {
+                    QSqlQuery query;
+                    query.prepare("select answer from problems where id=:id;");
+                    query.bindValue(":id", i);
 
-                if(arr == query.value(0).toString())
-                    t++;
+                    if(query.exec() && query.next())
+                    {
+                        sum[j]++;
+
+                        if(arr == query.value(0).toString())
+                            t[j]++;
+
+
+                        ui->Usr1Line->setText(QString::number(t[j]/sum[j], '.', 2));
+                    }
+
+                    QString clientIp = tcpSocket->peerAddress().toString();
+                    quint16 clientPort = tcpSocket->peerPort();
+                    ui->RecvLine->setText(arr);
+                    ui->RecvLine->append(clientIp);
+                    ui->RecvLine->append(QString::number(clientPort));
+                }
             }
-            ui->RecvLine->setText(arr);
-//            ui->RecvLine->setText(QString::number(t/sum, '.', 2));
-            ui->RecvLine->append(clientIp);
-//            ui->RecvLine->append(QString::number(clientPort));
+//            qDebug() << time.elapsed();
         });
     });
-}
-
-ProblemsWidget::~ProblemsWidget()
-{
-    delete tcpServer;
-    delete tcpSocket;
-    delete ui;
 }
 
 void ProblemsWidget::on_next_clicked()
@@ -105,10 +122,15 @@ void ProblemsWidget::on_send_clicked()
     query.exec();
     query.next();
 
-    tcpSocket->write(query.value(1).toString().append("\r\n").toUtf8());
-    tcpSocket->write(query.value(2).toString().append("\r\n").toUtf8());
-    tcpSocket->write(query.value(3).toString().append("\r\n").toUtf8());
-    tcpSocket->write(query.value(4).toString().append("\r\n").toUtf8());
-    tcpSocket->write(query.value(5).toString().append("\r\n").toUtf8());
-    tcpSocket->write(query.value(6).toString().append("\r\n").toUtf8());
+    for(unsigned int j = 0 ; j < tcpSocket_vector.size() ; j++)
+    {
+        tcpSocket = tcpSocket_vector[j];
+
+        tcpSocket->write(query.value(1).toString().append("\r\n").toUtf8());
+        tcpSocket->write(query.value(2).toString().append("\r\n").toUtf8());
+        tcpSocket->write(query.value(3).toString().append("\r\n").toUtf8());
+        tcpSocket->write(query.value(4).toString().append("\r\n").toUtf8());
+        tcpSocket->write(query.value(5).toString().append("\r\n").toUtf8());
+        tcpSocket->write(query.value(6).toString().append("\r\n").toUtf8());
+    }
 }
