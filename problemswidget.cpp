@@ -31,9 +31,43 @@ void ProblemsWidget::TCP()
 
     connect(tcpServer, &QTcpServer::newConnection, this, [=](){
         tcpSocket = tcpServer->nextPendingConnection();
+
+        QString clientIp = tcpSocket->peerAddress().toString();
+        quint16 clientPort = tcpSocket->peerPort();
         tcpSocket_vector.push_back(tcpSocket);
+        ip_vector.push_back(clientIp);
+        port_vector.push_back(clientPort);
         t.push_back(0);
         sum.push_back(0);
+        ratio_vector.push_back(0);
+
+        switch(tcpSocket_vector.size())
+        {
+        case 1:
+            ui->usr1ip->setText(clientIp);
+            ui->usr1port->setText(QString::number(clientPort));
+            ui->usr1correct->setText(QString::number(t.back()));
+            ui->usr1total->setText(QString::number(sum.back()));
+            ui->usr1ratio->setText(QString::number(ratio_vector.back()));
+            break;
+        case 2:
+            ui->usr2ip->setText(clientIp);
+            ui->usr2port->setText(QString::number(clientPort));
+            ui->usr2correct->setText(QString::number(t.back()));
+            ui->usr2total->setText(QString::number(sum.back()));
+            ui->usr2ratio->setText(QString::number(ratio_vector.back()));
+            break;
+        case 3:
+            ui->usr3ip->setText(clientIp);
+            ui->usr3port->setText(QString::number(clientPort));
+            ui->usr3correct->setText(QString::number(t.back()));
+            ui->usr3total->setText(QString::number(sum.back()));
+            ui->usr3ratio->setText(QString::number(ratio_vector.back()));
+            break;
+        default:
+            break;
+        }
+
         QMessageBox::information(nullptr, "information", "TCP connect success!", QMessageBox::Ok);
 
         connect(tcpSocket, &QTcpSocket::readyRead, this, [=](){
@@ -62,15 +96,29 @@ void ProblemsWidget::TCP()
                         if(arr == query.value(0).toString())
                             t[j]++;
 
+                        ratio_vector[j] = t[j]/sum[j];
 
-                        ui->Usr1Line->setText(QString::number(t[j]/sum[j], '.', 2));
+                        switch(j)
+                        {
+                        case 0:
+                            ui->usr1correct->setText(QString::number(t[j]));
+                            ui->usr1total->setText(QString::number(sum[j]));
+                            ui->usr1ratio->setText(QString::number(ratio_vector[j]));
+                            break;
+                        case 1:
+                            ui->usr2correct->setText(QString::number(t[j]));
+                            ui->usr2total->setText(QString::number(sum[j]));
+                            ui->usr2ratio->setText(QString::number(ratio_vector[j]));
+                            break;
+                        case 2:
+                            ui->usr3correct->setText(QString::number(t[j]));
+                            ui->usr3total->setText(QString::number(sum[j]));
+                            ui->usr3ratio->setText(QString::number(ratio_vector[j]));
+                            break;
+                        default:
+                            break;
+                        }
                     }
-
-                    QString clientIp = tcpSocket->peerAddress().toString();
-                    quint16 clientPort = tcpSocket->peerPort();
-                    ui->RecvLine->setText(arr);
-                    ui->RecvLine->append(clientIp);
-                    ui->RecvLine->append(QString::number(clientPort));
                 }
             }
         });

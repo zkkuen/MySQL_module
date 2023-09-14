@@ -35,12 +35,15 @@ private:
     int i;                   // page number
     unsigned int flag;       // flag
     unsigned int user_id;    // user id
-    std::vector<double> t;   // correct number
-    std::vector<double> sum; // total number
     QString str;
     QTcpServer *tcpServer;
     QTcpSocket *tcpSocket;
     std::vector<QTcpSocket*> tcpSocket_vector;
+    std::vector<QString> ip_vector;
+    std::vector<unsigned int> port_vector;
+    std::vector<double> t;   // correct number
+    std::vector<double> sum; // total number
+    std::vector<double> ratio_vector;
 };
 
 #endif // PROBLEMSWIDGET_H
